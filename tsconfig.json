@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    // "noImplicitAny": true,
+    "removeComments": true,
+    "resolveJsonModule": true,
+    "preserveConstEnums": true,
+    "sourceMap": false
+  },
+  "include": ["./src/**/*"]
+}
