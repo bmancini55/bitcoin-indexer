@@ -1,6 +1,6 @@
 import { Block, Tx } from "./data/bitcoind/bitcoind-types";
 import { BitcoinMysql } from "./data/mysql/bitcoin-mysql";
-import { BlockDto, TxDto, VoutDto } from "./data/mysql/bitcoin-types";
+import { AddressDto, BlockDto, TxDto, VoutDto } from "./data/mysql/bitcoin-types";
 
 export class Processor {
     private bitcoinMapper: BitcoinMysql;
@@ -103,13 +103,33 @@ export class Processor {
         // process out vout
         for (let i = 0; i < tx.vout.length; i++) {
             const vout = tx.vout[i];
-            const voutDto: VoutDto = {
+            let voutDto: VoutDto = {
                 n: i,
                 tx_id: txDto.tx_id,
                 value: vout.value,
                 vout_id: 0,
             };
+
+            // save dto
             await this.bitcoinMapper.insertVout(voutDto);
+
+            // load dto with id
+            voutDto = await this.bitcoinMapper.findVoutByOutpoint(txDto.tx_id as string, i);
+
+            // save addresses
+            if (vout.scriptPubKey.addresses) {
+                for (const address of vout.scriptPubKey.addresses) {
+                    await this.bitcoinMapper.insertAddress(address);
+                    const addressDto = await this.bitcoinMapper.findAddress(address);
+
+                    // console.log("    address", address, addressDto.address_id, voutDto.vout_id);
+
+                    await this.bitcoinMapper.insertVoutAddress(
+                        addressDto.address_id,
+                        voutDto.vout_id as string,
+                    );
+                }
+            }
         }
     }
 }

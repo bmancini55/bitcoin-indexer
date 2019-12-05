@@ -12,7 +12,7 @@ async function run() {
     const bitcoinClient = new BitcoindClient(config.bitcoind);
     const processor = new Processor(bitcoinMapper);
 
-    for (let height = 600001; height < 600010; height++) {
+    for (let height = 600000; height < 600500; height++) {
         const block = await bitcoinClient.getFullBlock(height);
         await processor.insertBlock(block);
     }

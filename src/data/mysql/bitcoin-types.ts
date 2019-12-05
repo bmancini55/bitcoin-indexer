@@ -31,3 +31,8 @@ export type VinDto = {
     n: number;
     vout_id: string;
 };
+
+export type AddressDto = {
+    address_id?: string;
+    address: string;
+};

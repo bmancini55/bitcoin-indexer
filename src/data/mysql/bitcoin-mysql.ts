@@ -1,5 +1,5 @@
 import * as mysql from "mysql";
-import { BlockDto, TxDto, VinDto, VoutDto } from "./bitcoin-types";
+import { AddressDto, BlockDto, TxDto, VinDto, VoutDto } from "./bitcoin-types";
 import { MysqlClient } from "./mysql-client";
 
 export class BitcoinMysql {
@@ -52,6 +52,14 @@ export class BitcoinMysql {
                 and n = ${mysql.escape(n)}
             ;`;
         return await this.client.queryOne<VoutDto>(sql);
+    }
+
+    public async findAddress(address: string) {
+        const sql = `
+            select *
+            from address
+            where address = ?;`;
+        return await this.client.queryOne<AddressDto>(sql, [address]);
     }
 
     public async insertBlock(block: BlockDto) {
@@ -115,5 +123,25 @@ export class BitcoinMysql {
             on duplicate key update
                 vout_id=values(vout_id);`;
         await this.client.query(sql);
+    }
+
+    public async insertAddress(address: string) {
+        const sql = `
+            insert ignore into address (address_id, address)
+            values (
+                0,
+                ${mysql.escape(address)}
+            );`;
+        await this.client.query(sql);
+    }
+
+    public async insertVoutAddress(addressId: string, voutId: string) {
+        const sql = `
+            insert into vout_address (vout_id, address_id)
+            values (?, ?)
+            on duplicate key update
+                vout_id=values(vout_id),
+                address_id=values(address_id);`;
+        await this.client.query(sql, [voutId, addressId]);
     }
 }
